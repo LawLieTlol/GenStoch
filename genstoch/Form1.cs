@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using static alglib.evd;
+using ExtendedFunctions;
 
 namespace GenStoch
 {
@@ -138,6 +139,7 @@ namespace GenStoch
         //Задать разммерность базиса
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            MatrixFunc.SetMatrix(Convert.ToInt32(comboBox1.SelectedItem));
             count = Convert.ToInt32(comboBox1.SelectedItem);
         }
         //Генерация n выборок и случайной последовательности rndseq
@@ -145,7 +147,7 @@ namespace GenStoch
         {
             int n = Convert.ToInt32(textBox1.Text);
             int rndcount = n * (count - 1);
-            rndseq = Get_Rnd(rndcount);
+            rndseq = MatrixFunc.GetRnd(rndcount, - 1000, 1000);
             for (int i = 0; i < rndseq.Length; i++)
                     File.AppendAllText("output_rnd.txt", rndseq[i].ToString() + Environment.NewLine);
         }
@@ -218,6 +220,11 @@ namespace GenStoch
                 q++;
                 k += count - 1;
             }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

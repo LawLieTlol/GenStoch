@@ -139,3 +139,5 @@ C:\Users\Lawliet\Source\Repos\GenStoch\GenStoch\obj\Debug\GenStoch.csproj.Genera
 C:\Users\Lawliet\Source\Repos\GenStoch\GenStoch\obj\Debug\GenStoch.csproj.CoreCompileInputs.cache
 C:\Users\Lawliet\Source\Repos\GenStoch\GenStoch\obj\Debug\GenStoch.exe
 C:\Users\Lawliet\Source\Repos\GenStoch\GenStoch\obj\Debug\GenStoch.pdb
+C:\Users\Lawliet\source\repos\GenStoch\GenStoch\bin\Debug\ExtendedFunctions.dll
+C:\Users\Lawliet\source\repos\GenStoch\GenStoch\bin\Debug\ExtendedFunctions.pdb
