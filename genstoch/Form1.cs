@@ -24,7 +24,7 @@ namespace GenStoch
         public Form1()
         {
             InitializeComponent();
-            comboBox1.SelectedIndex = 0;
+            cmboxDim.SelectedIndex = 0;
         }
         //Заполнение транспанированной матрицы
         private void button1_Click(object sender, EventArgs e)
@@ -41,7 +41,7 @@ namespace GenStoch
                         else if (i < j && (j - i) == 1) tmp[i, j] = rndseq[k + i];
                         else tmp[i, j] = tmp[j, i];
 
-                smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
+                succes = smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
 
                 Save_Matrix_Row(Round_Matrix(EigenVec), q);
                 q++;
@@ -114,8 +114,8 @@ namespace GenStoch
             M = new double[count, count];
             if ((new Form3()).ShowDialog() == DialogResult.OK)
             {
-                label1.Text = M[1,0].ToString();
-                label1.Text = "Значения базиса заданы.";
+                lbStatusbar.Text = M[1,0].ToString();
+                lbStatusbar.Text = "Значения базиса заданы.";
             }
         }
         //Посмотреть значение ансамбля
@@ -132,29 +132,51 @@ namespace GenStoch
             EigenNumbers = new double[count];
             bool work;
 
-            work = smatrixevd(M, count, 1, true, ref EigenNumbers, ref EigenVec);
-
-            label1.Text = "Значения ансамбля найдены.";
+            try
+            {
+                work = smatrixevd(M, count, 1, true, ref EigenNumbers, ref EigenVec);
+            }
+            catch (Exception ex)
+            {
+                lbStatusbar.Text = ex.Message;
+            }
         }
         //Задать разммерность базиса
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            MatrixFunc.SetMatrix(Convert.ToInt32(comboBox1.SelectedItem));
-            count = Convert.ToInt32(comboBox1.SelectedItem);
+            MatrixFunc.SetMatrix(Convert.ToInt32(cmboxDim.SelectedItem));
+            count = Convert.ToInt32(cmboxDim.SelectedItem);
         }
         //Генерация n выборок и случайной последовательности rndseq
-        private void button9_Click(object sender, EventArgs e)
+        private void BtnGenerateSampling_Click(object sender, EventArgs e)
         {
-            int n = Convert.ToInt32(textBox1.Text);
-            int rndcount = n * (count - 1);
-            rndseq = MatrixFunc.GetRnd(rndcount, - 1000, 1000);
-            for (int i = 0; i < rndseq.Length; i++)
-                    File.AppendAllText("output_rnd.txt", rndseq[i].ToString() + Environment.NewLine);
+            try
+            {
+                int n = Convert.ToInt32(textBox1.Text);
+                int rndcount = n * (count - 1);
+                rndseq = MatrixFunc.GetRnd(rndcount, -1000, 1000);
+
+                lbStatusbar.Text = "Выборки сгенерированны.";
+            }
+            catch (Exception ex)
+            {
+                lbStatusbar.Text = ex.Message;
+            }
+                   
         }
         //Сохранение вектора в файл
         private void button10_Click(object sender, EventArgs e)
         {
-            Save_Vec(rndseq);
+            try
+            {
+                for (int i = 0; i < rndseq.Length; i++)
+                    File.AppendAllText($"output_rndseqCount_{rndseq.Length}.txt", rndseq[i].ToString() + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                lbStatusbar.Text = ex.Message;
+            }
+            
         }
         //Загрузка вектора из файла
         private void button11_Click(object sender, EventArgs e)
@@ -214,11 +236,16 @@ namespace GenStoch
                         else if (i < j && (j - i) == 1) tmp[i, j] = rndseq[k + i];
                         else tmp[i, j] = tmp[j, i];
 
-                smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
+                succes = smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
 
-                Save_Matrix_Row(Round_Matrix(EigenVec));
-                q++;
-                k += count - 1;
+                if (succes)
+                {
+                    Save_Matrix_Row(Round_Matrix(EigenVec));
+                    q++;
+                    k += count - 1;
+                }
+                else lbStatusbar.Text = "Ошибка генерации";
+                
             }
         }
 
