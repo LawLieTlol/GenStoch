@@ -16,6 +16,7 @@ namespace GenStoch
     public partial class Form1 : Form
     {
         public static int count;
+        public static int n;
         public static double[,] M;
         public static double[] EigenNumbers;
         public static double[,] EigenVec;
@@ -24,7 +25,7 @@ namespace GenStoch
         public Form1()
         {
             InitializeComponent();
-            cmboxDim.SelectedIndex = 0;
+            comboBox1.SelectedIndex = 0;
         }
         //Заполнение транспанированной матрицы
         private void button1_Click(object sender, EventArgs e)
@@ -41,7 +42,7 @@ namespace GenStoch
                         else if (i < j && (j - i) == 1) tmp[i, j] = rndseq[k + i];
                         else tmp[i, j] = tmp[j, i];
 
-                succes = smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
+                smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
 
                 Save_Matrix_Row(Round_Matrix(EigenVec), q);
                 q++;
@@ -103,19 +104,21 @@ namespace GenStoch
             }
             str.Close();
         }
+
         public static void Save_Matrix_Row(double[,] matrix)
         {
             for (int i = 0; i < count; i++)
-                File.AppendAllText("output_1000.txt", matrix[i, 0].ToString().Replace(',', '.') + Environment.NewLine);
+                File.AppendAllText($"output_{count * n}.txt", matrix[i, 0].ToString().Replace(',', '.') + Environment.NewLine);
         }
+
         //Открытие формы 3 для задания значений матрицы вручную
         private void button5_Click(object sender, EventArgs e)
         {
             M = new double[count, count];
             if ((new Form3()).ShowDialog() == DialogResult.OK)
             {
-                lbStatusbar.Text = M[1,0].ToString();
-                lbStatusbar.Text = "Значения базиса заданы.";
+                label1.Text = M[1,0].ToString();
+                label1.Text = "Значения базиса заданы.";
             }
         }
         //Посмотреть значение ансамбля
@@ -138,31 +141,30 @@ namespace GenStoch
             }
             catch (Exception ex)
             {
-                lbStatusbar.Text = ex.Message;
+                label1.Text = ex.Message;
             }
         }
         //Задать разммерность базиса
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            MatrixFunc.SetMatrix(Convert.ToInt32(cmboxDim.SelectedItem));
-            count = Convert.ToInt32(cmboxDim.SelectedItem);
+            MatrixFunc.SetMatrix(Convert.ToInt32(comboBox1.SelectedItem));
+            count = Convert.ToInt32(comboBox1.SelectedItem);
         }
         //Генерация n выборок и случайной последовательности rndseq
-        private void BtnGenerateSampling_Click(object sender, EventArgs e)
+        private void button9_Click(object sender, EventArgs e)
         {
             try
             {
-                int n = Convert.ToInt32(textBox1.Text);
+                n = Convert.ToInt32(textBox1.Text);
                 int rndcount = n * (count - 1);
                 rndseq = MatrixFunc.GetRnd(rndcount, -1000, 1000);
 
-                lbStatusbar.Text = "Выборки сгенерированны.";
+                label1.Text = "Выборки сгенерированны.";
             }
             catch (Exception ex)
             {
-                lbStatusbar.Text = ex.Message;
+                label1.Text = ex.Message;
             }
-                   
         }
         //Сохранение вектора в файл
         private void button10_Click(object sender, EventArgs e)
@@ -174,9 +176,8 @@ namespace GenStoch
             }
             catch (Exception ex)
             {
-                lbStatusbar.Text = ex.Message;
+                label1.Text = ex.Message;
             }
-            
         }
         //Загрузка вектора из файла
         private void button11_Click(object sender, EventArgs e)
@@ -193,7 +194,7 @@ namespace GenStoch
         {
 
         }
-
+        //Test btn
         private void button2_Click(object sender, EventArgs e)
         {
             double[,] a = new double[4, 4] { { 0, 100, 0, 0 }, { 100, 0, 0.1, 0 }, { 0, 0.1, 0, 99 }, { 0, 0, 99, 0 } };
@@ -221,7 +222,7 @@ namespace GenStoch
             }
 
         }
-
+        //
         private void button3_Click(object sender, EventArgs e)
         {
             int k = 0, q = 1;
@@ -244,14 +245,8 @@ namespace GenStoch
                     q++;
                     k += count - 1;
                 }
-                else lbStatusbar.Text = "Ошибка генерации";
-                
+                else label1.Text = "Ошибка генерации";
             }
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
