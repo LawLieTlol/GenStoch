@@ -21,6 +21,11 @@ namespace GenStoch
         public static double[] EigenNumbers;
         public static double[,] EigenVec;
         double[] rndseq;
+        StreamWriter str;
+        //RNG vars
+        int hi = 100;
+        int lo = 0;
+        double[] rngseq;
 
         public Form1()
         {
@@ -31,7 +36,7 @@ namespace GenStoch
         private void button1_Click(object sender, EventArgs e)
         {
             int k = 0, q = 1;
-            bool succes;
+            //bool succes;
             double[,] tmp = new double[count, count];
 
             while (k < rndseq.Length)
@@ -83,13 +88,14 @@ namespace GenStoch
             return rez;
         }
         //Запись вектора в файл
-        public void Save_Vec(double[] vec)
+        public void Save_Vec(double[] vec, string rngMethod)
         {
-            StreamWriter str = new StreamWriter("output.txt");
+            str = new StreamWriter($"{rngMethod}.txt", true, Encoding.Default);
             for (int i = 0; i < vec.Length; i++)
             {
                 str.Write(vec[i] + " ");
             }
+            str.WriteLine();
             str.Close();
         }
         //Запись матрицы в файл 
@@ -247,6 +253,63 @@ namespace GenStoch
                 }
                 else label1.Text = "Ошибка генерации";
             }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void алгоритмаЛемераToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //LehmerRNG
+            LehmerRng lehmer = new LehmerRng(1);
+            for (int i = 0; i < 1000; ++i)
+            {
+                double x = lehmer.Next();
+                int ri = (int)((hi - lo) * x + lo); // 0 to 9
+                ++rngseq[ri];
+            }
+            Save_Vec(rngseq, "LehmerRng");
+        }
+
+        private void алгоритмФибоначчиСЗапаздываниямиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //LaggedFibRNG
+            LaggedFibRng laggedfib = new LaggedFibRng(0);
+            for (int i = 0; i < 1000; ++i)
+            {
+                double x = laggedfib.Next();
+                int ri = (int)((hi - lo) * x + lo); // 0 to 9
+                ++rngseq[ri];
+            }
+            Save_Vec(rngseq, "LaggedFibRng");
+        }
+
+        private void линейныйКонгруэнтныйАлгоритмToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //LinearConRNG
+            LinearConRng lincon = new LinearConRng(0);
+            for (int i = 0; i < 1000; ++i)
+            {
+                double x = lincon.Next();
+                int ri = (int)((hi - lo) * x + lo); // 0 to 9
+                ++rngseq[ri];
+            }
+            Save_Vec(rngseq, "LinearConRng");
+        }
+
+        private void алгоритмВичманаХиллаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //WichmannRNG
+            WichmannRng wich = new WichmannRng(1);
+            for (int i = 0; i < 1000; ++i)
+            {
+                double x = wich.Next();
+                int ri = (int)((hi - lo) * x + lo); // от 0 до 9
+                ++rngseq[ri];
+            }
+            Save_Vec(rngseq, "WichmannRng");
         }
     }
 }
