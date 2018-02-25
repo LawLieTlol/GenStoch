@@ -20,17 +20,22 @@ namespace GenStoch
         public static double[,] M;
         public static double[] EigenNumbers;
         public static double[,] EigenVec;
-        double[] rndseq;
         StreamWriter str;
+        string path = "Results/";
         //RNG vars
-        int hi = 100;
+        int hi = 10;
         int lo = 0;
-        double[] rngseq;
+        int[] rngseq;
+        int rndcount;
+        int seed;
+        int range = 1000;
+        string curRng;
 
         public Form1()
         {
             InitializeComponent();
-            comboBox1.SelectedIndex = 0;
+            comboBox1.SelectedIndex = 3;
+            //maskedTextBox1.Mask = "000";
         }
         //Заполнение транспанированной матрицы
         private void button1_Click(object sender, EventArgs e)
@@ -39,17 +44,17 @@ namespace GenStoch
             //bool succes;
             double[,] tmp = new double[count, count];
 
-            while (k < rndseq.Length)
+            while (k < rngseq.Length)
             {
                 for (int i = 0; i < count; i++)
                     for (int j = 0; j < count; j++)
                         if (i == j) tmp[i, j] = 0;
-                        else if (i < j && (j - i) == 1) tmp[i, j] = rndseq[k + i];
+                        else if (i < j && (j - i) == 1) tmp[i, j] = rngseq[k + i];
                         else tmp[i, j] = tmp[j, i];
 
                 smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
 
-                Save_Matrix_Row(Round_Matrix(EigenVec), q);
+                Save_Matrix(Round_Matrix(EigenVec), q);
                 q++;
                 k += count - 1;
             }
@@ -69,16 +74,7 @@ namespace GenStoch
             }
             return mat;
         }
-        //Заполнение массива случайными числами длиной count
-        double[] Get_Rnd(int count)
-        {
-            Random r = new Random();
-            double[] outrnd = new double[count];
-            for (int i = 0; i < count; i++)
-                outrnd[i] = Convert.ToDouble(r.Next(-1000, 1000) / 10.0);
-            return outrnd;
-        }
-        //Округление значение вохдной матрицы до 4 знаков
+        //Округление значение входной матрицы до 4 знаков
         public static double[,] Round_Matrix(double[,] M)
         {
             double[,] rez = new double[count, count];
@@ -88,18 +84,14 @@ namespace GenStoch
             return rez;
         }
         //Запись вектора в файл
-        public void Save_Vec(double[] vec, string rngMethod)
+        public void Save_Vec(int[] vec, string rngMethod)
         {
-            str = new StreamWriter($"{rngMethod}.txt", true, Encoding.Default);
             for (int i = 0; i < vec.Length; i++)
-            {
-                str.Write(vec[i] + " ");
-            }
-            str.WriteLine();
-            str.Close();
+                File.AppendAllText(path + $"{rngMethod}_{rndcount}.txt", vec[i].ToString().Replace(',', '.') + Environment.NewLine);
         }
+
         //Запись матрицы в файл 
-        public static void Save_Matrix_Row(double[,] matrix, int k)
+        public static void Save_Matrix(double[,] matrix, int k)
         {
             StreamWriter str = new StreamWriter($"output{k}.txt");
             for (int i = 0; i < count; i++)
@@ -110,11 +102,11 @@ namespace GenStoch
             }
             str.Close();
         }
-
-        public static void Save_Matrix_Row(double[,] matrix)
+        //Запись первой строки симметрической матрицы в файл
+        public void Save_Matrix_Row(double[,] matrix, string currentRng)
         {
             for (int i = 0; i < count; i++)
-                File.AppendAllText($"output_{count * n}.txt", matrix[i, 0].ToString().Replace(',', '.') + Environment.NewLine);
+                File.AppendAllText(path + $"output_{currentRng}_{count * n}.txt", matrix[i, 0].ToString().Replace(',', '.') + Environment.NewLine);
         }
 
         //Открытие формы 3 для задания значений матрицы вручную
@@ -123,7 +115,7 @@ namespace GenStoch
             M = new double[count, count];
             if ((new Form3()).ShowDialog() == DialogResult.OK)
             {
-                label1.Text = M[1,0].ToString();
+                label1.Text = M[1, 0].ToString();
                 label1.Text = "Значения базиса заданы.";
             }
         }
@@ -132,7 +124,7 @@ namespace GenStoch
         {
             if ((new Form2()).ShowDialog() == DialogResult.OK)
             {
-                
+
             }
         }
         //Расчет значений ансамбля
@@ -156,29 +148,32 @@ namespace GenStoch
             MatrixFunc.SetMatrix(Convert.ToInt32(comboBox1.SelectedItem));
             count = Convert.ToInt32(comboBox1.SelectedItem);
         }
-        //Генерация n выборок и случайной последовательности rndseq
+        //Удалить все txt и dat файлы в path
         private void button9_Click(object sender, EventArgs e)
         {
-            try
+            string supportedExtensions = "*.txt,*.dat";
+            bool del = false;
+            foreach (string file in Directory.GetFiles(path, "*.*",
+                SearchOption.AllDirectories).Where(s => supportedExtensions.Contains(Path.GetExtension(s).ToLower())))
             {
-                n = Convert.ToInt32(textBox1.Text);
-                int rndcount = n * (count - 1);
-                rndseq = MatrixFunc.GetRnd(rndcount, -1000, 1000);
+                File.Delete(file);
+                del = true;
+            }
+            if (del)
+                label1.Text = "Все файлы *.dat и *.txt удалены.";
+            else label1.Text = "В папке Results нет ни одного файла";
 
-                label1.Text = "Выборки сгенерированны.";
-            }
-            catch (Exception ex)
-            {
-                label1.Text = ex.Message;
-            }
         }
-        //Сохранение вектора в файл
+        //Поменять расширение у всех файлов в папке Results.
         private void button10_Click(object sender, EventArgs e)
         {
+            string[] files = Directory.GetFiles(path, "*.*");
             try
             {
-                for (int i = 0; i < rndseq.Length; i++)
-                    File.AppendAllText($"output_rndseqCount_{rndseq.Length}.txt", rndseq[i].ToString() + Environment.NewLine);
+                foreach (string file in files)
+                    if (file.Contains(".dat"))
+                        continue;
+                    else File.Copy(file, $"{file.Substring(0, file.Length - 3)}" + "dat", true);
             }
             catch (Exception ex)
             {
@@ -192,7 +187,7 @@ namespace GenStoch
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 string file = File.ReadAllText(openFileDialog1.FileName);
-                rndseq = file.Split(new char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(n => double.Parse(n)).ToArray();
+                rngseq = file.Split(new char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(n => int.Parse(n)).ToArray();
             }
         }
 
@@ -226,28 +221,27 @@ namespace GenStoch
                 }
                 mat.Close();
             }
-
         }
-        //
+        //Рассчет конечной выборки!
         private void button3_Click(object sender, EventArgs e)
         {
             int k = 0, q = 1;
             bool succes;
             double[,] tmp = new double[count, count];
 
-            while (k < rndseq.Length)
+            while (k < rngseq.Length)
             {
                 for (int i = 0; i < count; i++)
                     for (int j = 0; j < count; j++)
                         if (i == j) tmp[i, j] = 0;
-                        else if (i < j && (j - i) == 1) tmp[i, j] = rndseq[k + i];
+                        else if (i < j && (j - i) == 1) tmp[i, j] = rngseq[k + i];
                         else tmp[i, j] = tmp[j, i];
 
                 succes = smatrixevd(tmp, count, 1, true, ref EigenNumbers, ref EigenVec);
 
                 if (succes)
                 {
-                    Save_Matrix_Row(Round_Matrix(EigenVec));
+                    Save_Matrix_Row(Round_Matrix(EigenVec), curRng);
                     q++;
                     k += count - 1;
                 }
@@ -255,61 +249,121 @@ namespace GenStoch
             }
         }
 
-        private void button4_Click(object sender, EventArgs e)
-        {
-            
-        }
-
         private void алгоритмаЛемераToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //LehmerRNG
-            LehmerRng lehmer = new LehmerRng(1);
-            for (int i = 0; i < 1000; ++i)
+            seed = Environment.TickCount;
+            label4.Text = seed.ToString();
+            LehmerRng lehmer = new LehmerRng(seed);
+            rngseq = new int[rndcount];
+            for (int i = 0; i < rndcount; i++)
             {
                 double x = lehmer.Next();
-                int ri = (int)((hi - lo) * x + lo); // 0 to 9
-                ++rngseq[ri];
+                //int ri = (int)((hi - lo) * x + lo); // 0 to 9
+                rngseq[i] = (int)(x * range);
             }
-            Save_Vec(rngseq, "LehmerRng");
+
+            curRng = "LehmerRng";
+            Save_Vec(rngseq, curRng);
         }
 
         private void алгоритмФибоначчиСЗапаздываниямиToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //LaggedFibRNG
-            LaggedFibRng laggedfib = new LaggedFibRng(0);
-            for (int i = 0; i < 1000; ++i)
+            seed = Environment.TickCount;
+            LaggedFibRng laggedfib = new LaggedFibRng(seed);
+            rngseq = new int[rndcount];
+            for (int i = 0; i < rndcount; ++i)
             {
                 double x = laggedfib.Next();
-                int ri = (int)((hi - lo) * x + lo); // 0 to 9
-                ++rngseq[ri];
+                //int ri = (int)((hi - lo) * x + lo); // 0 to 9
+                rngseq[i] = (int)(x * range);
             }
-            Save_Vec(rngseq, "LaggedFibRng");
+
+            curRng = "LaggedFibRng";
+            Save_Vec(rngseq, curRng);
         }
 
         private void линейныйКонгруэнтныйАлгоритмToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //LinearConRNG
-            LinearConRng lincon = new LinearConRng(0);
-            for (int i = 0; i < 1000; ++i)
+            seed = Environment.TickCount;
+            LinearConRng lincon = new LinearConRng(seed);
+            rngseq = new int[rndcount];
+            for (int i = 0; i < rndcount; ++i)
             {
                 double x = lincon.Next();
-                int ri = (int)((hi - lo) * x + lo); // 0 to 9
-                ++rngseq[ri];
+                //int ri = (int)((hi - lo) * x + lo); // 0 to 9
+                rngseq[i] = (int)(x * range);
             }
-            Save_Vec(rngseq, "LinearConRng");
+
+            curRng = "LinearConRng";
+            Save_Vec(rngseq, curRng);
         }
 
         private void алгоритмВичманаХиллаToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //WichmannRNG
-            WichmannRng wich = new WichmannRng(1);
-            for (int i = 0; i < 1000; ++i)
+            seed = Environment.TickCount;
+            WichmannRng wich = new WichmannRng(seed / 30000);
+            rngseq = new int[rndcount];
+            for (int i = 0; i < rndcount; ++i)
             {
                 double x = wich.Next();
-                int ri = (int)((hi - lo) * x + lo); // от 0 до 9
-                ++rngseq[ri];
+                //int ri = (int)((hi - lo) * x + lo); // от 0 до 9
+                rngseq[i] = (int)(x * range);
             }
-            Save_Vec(rngseq, "WichmannRng");
+
+            curRng = "WichmannRng";
+            Save_Vec(rngseq, curRng);
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            n = Convert.ToInt32(textBox1.Text);
+            rndcount = n * (count - 1);
+            label4.Text = rndcount.ToString();
+        }
+
+        private void стандартныйRandomToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                rngseq = MatrixFunc.GetRndInt(rndcount, 0, range);
+                curRng = "DefaultRng";
+                Save_Vec(rngseq, curRng);
+                label1.Text = "Выборки сгенерированны.";
+            }
+            catch (Exception ex)
+            {
+                label1.Text = ex.Message;
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                label4.Visible = true;
+                button4.Visible = true;
+            }
+            else
+            {
+                label4.Visible = false;
+                button4.Visible = false;
+            }
+        }
+        //Фильтр ввода данных в txtBox
+        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar != 8 && (e.KeyChar < 48 || e.KeyChar > 57))
+                e.Handled = true;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            //if (Directory.GetFiles(path, "*.*")
+            //    .Where(s => "*.dat".Contains(Path.GetExtension(s).ToLower())))
         }
     }
 }

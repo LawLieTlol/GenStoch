@@ -11,7 +11,7 @@ namespace GenStoch
         private int s1;
         private int s2;
         private int s3;
-
+        //Для инициализации seed нужны 3 значения в диапазоне [1, 30000]
         public WichmannRng(int seed)
         {
             if (seed <= 0 || seed > 30000)
@@ -20,7 +20,7 @@ namespace GenStoch
             s2 = seed + 1;
             s3 = seed + 2;
         }
-
+        //Более 6 000 000 000 000 значений до того, как начнет повторяться.
         public double Next()
         {
             s1 = 171 * (s1 % 177) - 2 * (s1 / 177);

@@ -8,6 +8,12 @@ namespace GenStoch
 {
     class LaggedFibRng
     {
+        /// <summary>
+        /// Пояснение работы алгоритма
+        /// X(i) = X(i-7) + X(i-10) mod m
+        /// Значения k и j можно изменять.
+        /// Отлично подходят — (24,55), (38,89), (37,100), (30,127), (83,258), (107,378).
+        /// </summary>
         private const int k = 10; // Largest magnitude"-index"
         private const int j = 7; // Other "-index"
         private const int m = Int32.MaxValue;  // 2^31 - 1 = maxint
@@ -16,10 +22,13 @@ namespace GenStoch
 
         public LaggedFibRng(int seed)
         {
+            //Первые k+1 значения последовательности
             vals = new List<int>();
             for (int i = 0; i < k + 1; ++i)
                 vals.Add(seed);
-            if (seed % 2 == 0) vals[0] = 11;
+            // Наименьшее из начальных значений k обязательно должно быть нечетным (любым).
+            if (seed % 2 == 0)
+                vals[0] = 11;
             // Уничтожаем некоторые значения
             for (int ct = 0; ct < 1000; ++ct)
             {

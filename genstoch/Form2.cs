@@ -57,7 +57,7 @@ namespace GenStoch
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Form1.Save_Matrix_Row(Form1.Round_Matrix(Form1.EigenVec), 99);
+            Form1.Save_Matrix(Form1.Round_Matrix(Form1.EigenVec), 99);
         }
     }
 }
